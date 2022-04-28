@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "esbuild --bundle --platform=node src/index.ts --outdir=dist",
-    "prestart": "npm run build",
     "start": "node dist/index.js",
     "dev": "concurrently \"esbuild src/index.ts --sourcemap --bundle --watch --platform=node --outdir=dist \" \"nodemon -q dist/index.js --signal SIGTERM\""
   },
