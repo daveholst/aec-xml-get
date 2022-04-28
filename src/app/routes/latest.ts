@@ -34,20 +34,22 @@ export async function listData() {
       'src/results/results.zip',
       `${zipDir}${fileNamePrefix}-${electionCode}-${newestTimestamp}.zip`
     )
+    // close the ftp connection
+    client.close()
     // extract the xml file
     const zip = new StreamZip.async({ file: 'src/results/results.zip' })
     await zip.extract(
       `xml/aec-mediafeed-results-standard-verbose-${electionCode}.xml`,
       './src/results/results.xml'
     )
+    // close the zip connection
     await zip.close()
 
+    // grab the xml file
     const xmlLocation = path.join(__dirname, '../src/results/results.xml')
     const xml = await fs.readFile(xmlLocation, 'utf8')
-    // await client.uploadFrom('README.md', 'README_FTP.md')
     return xml
   } catch (err) {
     console.log(err)
   }
-  client.close()
 }
