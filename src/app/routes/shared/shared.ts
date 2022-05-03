@@ -53,3 +53,21 @@ export async function getXmlData() {
     console.log(err)
   }
 }
+
+export const waElectorates = [
+  'Brand',
+  'Burt',
+  'Canning',
+  'Cowan',
+  'Curtin',
+  'Durack',
+  'Forrest',
+  'Fremantle',
+  'Hasluck',
+  'Moore',
+  "O'Connor",
+  'Pearce',
+  'Perth',
+  'Swan',
+  'Tangney',
+]
