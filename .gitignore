@@ -1,5 +1,6 @@
 .DS_Store
-
+google_key
+keys/
 # Logs
 logs
 *.log
