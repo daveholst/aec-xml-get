@@ -7,10 +7,10 @@ import { logger } from './logger'
 export async function getXmlData() {
   const client = new ftp.Client()
 
-  const host = 'mediafeedarchive.aec.gov.au' // TEST DATA
-  // const host = 'mediafeed.aec.gov.au'
-  const electionCode = '24310' // TEST DATA
-  // const electionCode = '27966' // Fed Election 2022 Code
+  // const host = 'mediafeedarchive.aec.gov.au'   // TEST DATA Server
+  const host = 'mediafeed.aec.gov.au' //Prod Server
+  // const electionCode = '24310'                 // TEST DATA Code
+  const electionCode = '27966' // Fed Election 2022 Code
   const zipDir = `/${electionCode}/Standard/Verbose/`
   const fileNamePrefix = 'aec-mediafeed-Standard-Verbose'
 
