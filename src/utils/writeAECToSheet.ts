@@ -1,27 +1,26 @@
-import { Request, Response } from 'express'
-import { getXmlData, waElectorates } from './shared/shared'
 import { XMLParser } from 'fast-xml-parser'
-
 import { GoogleSpreadsheet } from 'google-spreadsheet'
+import { getXmlData } from './getXmlData'
 
-export async function cleanDataHandler(req: Request, res: Response) {
+import { logger } from './logger'
+import { waElectorates } from './waElectorates'
+
+export async function writeAecDataToSheet() {
   try {
+    logger.info('Starting AEC Retrieval')
+    // init parser
     const parser = new XMLParser()
-
     // get the xml off the ftp
     const xmlData = await getXmlData()
-    // convert over to
+    // convert over to JSON
+    logger.info('Converting XML to JSON')
+
     let parsedData = await parser.parse(xmlData)
-    // test sanitizer
-    const target = 'Brand'
 
     const contentArray =
       parsedData.MediaFeed.Results.Election[0].House.Contests.Contest
-    // console.log(contentArray)
-    // contentArray.map((e) => {
-    //   console.log(e)
-    // })
-    // console.log(contentArray.map)
+
+    logger.info('Cleaning JSON')
 
     let cleanData = contentArray.map((e) => ({
       electorate: e['eml:ContestIdentifier']['eml:ContestName'],
@@ -51,9 +50,6 @@ export async function cleanDataHandler(req: Request, res: Response) {
       waElectorates.includes(e.electorate)
     )
 
-    // TODO move this out -- just a test location
-
-    // const testData = waCleanData[0]
     // Initialize the sheet - doc ID is the long id in the sheets URL
     const doc = new GoogleSpreadsheet(
       '1s9aWUMv7qzPZD7nMq71xPmmkBDBiwb0bdWlj2VIu0N0'
@@ -65,20 +61,35 @@ export async function cleanDataHandler(req: Request, res: Response) {
     })
 
     // This errors once made. Prob need to do a check or an init script :shrug:
-    await waCleanData.forEach(async (elec) => {
+    await doc.loadInfo()
+
+    // logger.info('Sheets List', doc.sheetsByTitle)
+
+    // updater function
+    // await waCleanData.forEach(async (elec) => {
+    //   const sheet = doc.sheetsByTitle[elec]
+    //   const rows =
+    //   sheet.
+    // })
+
+    // Sheet Exists so I'm commenting this out
+    logger.info('Staring Write to Google Sheet')
+    await waCleanData.map(async (elec) => {
+      // delete the old sheet if it exists
+      if (doc.sheetsByTitle[elec.electorate]) {
+        await doc.deleteSheet(doc.sheetsByTitle[elec.electorate].sheetId)
+      }
+      // write it back in
       const sheet = await doc.addSheet({
         title: elec.electorate,
         headerValues: ['name', 'party', 'votes', 'twoCandidateVotes'],
       })
+
       // populate the sheet with candidates
       await sheet.addRows(elec.candidates)
     })
-
-    // send the data back
-    res.type('application/json').status(200).send(waCleanData)
+    logger.info('Write Complete')
   } catch (error) {
-    console.log('ERROR::' + error)
-
-    res.status(500).json(error)
+    logger.error(error)
   }
 }

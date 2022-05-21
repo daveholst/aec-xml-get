@@ -2,15 +2,20 @@ import * as ftp from 'basic-ftp'
 import StreamZip from 'node-stream-zip'
 import fs from 'fs/promises'
 import path from 'path'
+import { logger } from './logger'
 
 export async function getXmlData() {
   const client = new ftp.Client()
 
-  const host = 'mediafeedarchive.aec.gov.au'
-  const electionCode = '24310'
+  const host = 'mediafeedarchive.aec.gov.au' // TEST DATA
+  // const host = 'mediafeed.aec.gov.au'
+  const electionCode = '24310' // TEST DATA
+  // const electionCode = '27966' // Fed Election 2022 Code
   const zipDir = `/${electionCode}/Standard/Verbose/`
   const fileNamePrefix = 'aec-mediafeed-Standard-Verbose'
 
+  // TODO this could probably do some buffer magic to avoid disk writes (slow on droplets? and I have the RAM??)
+  /* Enable Below for debugging  */
   // client.ftp.verbose = true
   try {
     await client.access({
@@ -26,14 +31,15 @@ export async function getXmlData() {
     const newestTimestamp = Math.max(...timestamps)
 
     // download the newest files
-    console.log(
-      `${zipDir}${fileNamePrefix}-${electionCode}-${newestTimestamp}.zip`
+    logger.info(
+      `Downloading: ${zipDir}${fileNamePrefix}-${electionCode}-${newestTimestamp}.zip`
     )
     // download zip file
     await client.downloadTo(
       'src/results/results.zip',
       `${zipDir}${fileNamePrefix}-${electionCode}-${newestTimestamp}.zip`
     )
+
     // close the ftp connection
     client.close()
     // extract the xml file
@@ -50,24 +56,6 @@ export async function getXmlData() {
     const xml = await fs.readFile(xmlLocation, 'utf8')
     return xml
   } catch (err) {
-    console.log(err)
+    logger.error(err)
   }
 }
-
-export const waElectorates = [
-  'Brand',
-  'Burt',
-  'Canning',
-  'Cowan',
-  'Curtin',
-  'Durack',
-  'Forrest',
-  'Fremantle',
-  'Hasluck',
-  'Moore',
-  "O'Connor",
-  'Pearce',
-  'Perth',
-  'Swan',
-  'Tangney',
-]
